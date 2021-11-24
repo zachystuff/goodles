@@ -1,11 +1,13 @@
 //global variables that dont change
-let container = document.querySelector('.row');
+let cardSection = document.querySelector('.row');
 
 let date = new Date();
 //
-let datecontainer = document.getElementById('header-nav');
+let dateSection = document.getElementById('header-nav');
 
 let dateControl = document.querySelector('input[type="date"]');
+
+let headerTitle = document.getElementById('header-title');
 
 const API = 'https://google-doodles.herokuapp.com/doodles/year/month?hl=en';
 
@@ -17,6 +19,16 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 const COLORS = ['green', 'blue', 'red', 'yellow'];
 
+document.querySelector('#header-nav h4').addEventListener('mouseenter', () => {
+    document.getElementById('static-date').hidden = true;
+    document.getElementById('dynamic-date').hidden = false;
+});
+
+document.querySelector('#header-nav h4').addEventListener('mouseleave', () => {
+    document.getElementById('static-date').hidden = false;
+    document.getElementById('dynamic-date').hidden = true;
+});
+
 //fetch from api
 async function fetchDoodles(year, month) {
     let updatedAPI = API.replace('year', year).replace('month', month);
@@ -26,10 +38,11 @@ async function fetchDoodles(year, month) {
 }
 
 async function buildDoodleCache(year, month) {
+    setHeaderTitle();
     // check at initialization if year and month are undefined;
     if (year == undefined && month == undefined) {
         year = date.getFullYear();
-        month = date.getMonth() + 1;
+        month = date.getMonth();
     }
     const doodles = await fetchDoodles(year, month);
     doodles.map(doodle => {
@@ -44,7 +57,7 @@ async function buildDoodleCache(year, month) {
             day
         }
 
-        container.append(createCard(NEWDOODLE));
+        cardSection.append(createCard(NEWDOODLE));
     });
 }
 
@@ -78,6 +91,8 @@ function createCard(doodle){
     let doodleLink = document.createElement('a');
     doodleLink.textContent = 'What in the doodle?';
     doodleLink.target = '_blank';
+    doodleLink.classList.add('btn');
+    doodleLink.style.color = 'white';    
     doodleLink.href = GOOGLE_QUERY.replace('query', doodle['title']);
     cardBody.append(assignColor(doodleLink));
 
@@ -92,12 +107,29 @@ function createCard(doodle){
 // submit function
 function submitDR(e){
     e.preventDefault();
-    let [UIYear, UIMonth] = dateControl.value.split('-');
-    container.innerHTML = '';
-    buildDoodleCache(UIYear, UIMonth);
-    console.log('fetched Doodle');
+    console.log(dateControl.value);
+    if(dateControl.value) {
+        let [UIYear, UIMonth] = dateControl.value.split('-');
+        document.innerHTML = '';
+        buildDoodleCache(UIYear, UIMonth);
+        console.log('fetched Doodle');
+    } else {
+        console.log('ERROR - ENTER DATE!');
+    }
 }
 
+function setHeaderTitle() {
+    let header = 'Today in Google Doodles History';
+    for (const letter of header) {
+        console.log(letter);
+        let span = document.createElement('span');
+        span.textContent = letter;
+        span.style.fontFamily = 'Sedgwick Ave Display';
+        span.style.fontSize = '4rem';
+        headerTitle.append(assignColor(span));
+    }
+}
+// Assistance functions
 function getRandomColor() {
     let colorIndex = Math.floor(Math.random() * 4);
     let color = COLORS[colorIndex];
@@ -106,7 +138,10 @@ function getRandomColor() {
 
 function assignColor(element) {
     let color = getRandomColor();
-    element.classList = `google-${color} btn btn-primary`;
+    element.classList.add(`google-${color}`);
     element.style.borderColor = 'unset';
     return element;
 }
+
+
+
